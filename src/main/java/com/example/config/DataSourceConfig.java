@@ -1,11 +1,16 @@
 package com.example.config;
 
-import java.nio.charset.StandardCharsets;
-
 import javax.sql.DataSource;
 
-import org.beetl.sql.core.*;
+import org.beetl.sql.core.Interceptor;
+import org.beetl.sql.core.SQLManager;
+import org.beetl.sql.core.UnderlinedNameConversion;
 import org.beetl.sql.core.db.MySqlStyle;
+import org.beetl.sql.core.loader.MarkdownClasspathLoader;
+import org.beetl.sql.ext.DebugInterceptor;
+import org.beetl.sql.ext.spring.BeetlSqlScannerConfigurer;
+import org.beetl.sql.ext.spring.SpringConnectionSource;
+import org.beetl.sql.ext.spring.SqlManagerFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -39,17 +44,33 @@ public class DataSourceConfig {
 	}
 
 	@Bean
-	public SQLManager sqlManager(@Autowired DataSource dataSource, @Value("${worker.id}") long workerId,
-			@Value("${data.center.id}") long dataCenterId) {
-		ConnectionSource connectionSource = ConnectionSourceHelper.getSingle(dataSource);
-		SQLManagerBuilder sqlManagerBuilder = new SQLManagerBuilder(connectionSource);
-		sqlManagerBuilder.setNc(new UnderlinedNameConversion());
-		sqlManagerBuilder.setDbStyle(new MySqlStyle());
-		sqlManagerBuilder.setSqlLoader("sql", StandardCharsets.UTF_8.name());
-		sqlManagerBuilder.addInterDebug();
-		SQLManager sqlManager = sqlManagerBuilder.build();
+	public SqlManagerFactoryBean sqlManagerFactoryBean(@Autowired DataSource dataSource) {
+		SqlManagerFactoryBean sqlManagerFactoryBean = new SqlManagerFactoryBean();
+		sqlManagerFactoryBean.setDbStyle(new MySqlStyle());
+		sqlManagerFactoryBean.setSqlLoader(new MarkdownClasspathLoader("sql"));
+		sqlManagerFactoryBean.setNc(new UnderlinedNameConversion());
+		sqlManagerFactoryBean.setInterceptors(new Interceptor[]{new DebugInterceptor()});
+		SpringConnectionSource springConnectionSource = new SpringConnectionSource();
+		springConnectionSource.setMasterSource(dataSource);
+		sqlManagerFactoryBean.setCs(springConnectionSource);
+		return sqlManagerFactoryBean;
+	}
+
+	@Bean
+	public SQLManager sqlManager(@Autowired SqlManagerFactoryBean sqlManagerFactoryBean,
+			@Value("${worker.id}") long workerId, @Value("${data.center.id}") long dataCenterId) {
+		SQLManager sqlManager = sqlManagerFactoryBean.getSqlManager();
 		Snowflake snowflake = new Snowflake(workerId, dataCenterId);
 		sqlManager.addIdAutoGen("snow", params -> snowflake.nextId());
 		return sqlManager;
+	}
+
+	@Bean
+	public BeetlSqlScannerConfigurer beetlSqlScannerConfigurer() {
+		BeetlSqlScannerConfigurer beetlSqlScannerConfigurer = new BeetlSqlScannerConfigurer();
+		beetlSqlScannerConfigurer.setDaoSuffix("Dao");
+		beetlSqlScannerConfigurer.setBasePackage("com.example.mapper");
+		beetlSqlScannerConfigurer.setSqlManagerFactoryBeanName("sqlManagerFactoryBean");
+		return beetlSqlScannerConfigurer;
 	}
 }
