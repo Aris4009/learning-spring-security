@@ -3,7 +3,7 @@ spring:
     banner-mode: off
     log-startup-info: false
   datasource:
-    url: jdbc:mysql://localhost:3306/test?useSSL=false
+    url: jdbc:mysql://localhost:3306/security?useSSL=false
     username: root
     password:
 
@@ -13,10 +13,3 @@ server:
     encoding:
       force: true
       charset: UTF-8
-
-beetlsql:
-  sqlManagers: sqlManager
-  sqlManager:
-    ds: dataSource
-    basePackage: com.example.mapper
-    daoSuffix: Mapper
