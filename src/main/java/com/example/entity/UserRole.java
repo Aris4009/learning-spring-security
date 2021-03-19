@@ -20,6 +20,10 @@ public class UserRole implements java.io.Serializable {
 	public UserRole() {
 	}
 
+	public UserRole(Long userId) {
+		this.userId = userId;
+	}
+
 	public Long getId() {
 		return id;
 	}

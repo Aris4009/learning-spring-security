@@ -1,4 +1,4 @@
-package com.example.config;
+package com.example.config.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -10,25 +10,23 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
+import com.example.config.RequestLogConfig;
 import com.example.interceptor.IStoreLog;
 import com.example.interceptor.LogHandlerInterceptor;
 import com.example.json.JSON;
 
-/**
- * web配置
- */
 @Configuration
-public class WebConfig implements WebMvcConfigurer {
+public class SecurityConfig extends WebMvcConfigurationSupport {
 
 	private final RequestLogConfig requestLogConfig;
 
 	private final String serviceId;
 
-	public WebConfig(RequestLogConfig requestLogConfig, @Value("${spring.application.name}") String serviceId) {
-		this.serviceId = serviceId;
+	public SecurityConfig(RequestLogConfig requestLogConfig, @Value("${spring.application.name}") String serviceId) {
 		this.requestLogConfig = requestLogConfig;
+		this.serviceId = serviceId;
 	}
 
 	@Override

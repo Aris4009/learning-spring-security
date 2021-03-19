@@ -65,7 +65,7 @@ public class CodeGen {
 		EntitySourceBuilder.getGroupTemplate().setErrorHandler(new ReThrowConsoleErrorHandler());
 
 		CustomProject project = new CustomProject("com.example");
-		String tableName = "user";
+		String tableName = "role_permission";
 		config.gen(tableName, project);
 	}
 

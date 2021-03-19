@@ -19,6 +19,10 @@ public class Role implements java.io.Serializable {
 	public Role() {
 	}
 
+	public Role(Long id) {
+		this.id = id;
+	}
+
 	public Long getId() {
 		return id;
 	}
